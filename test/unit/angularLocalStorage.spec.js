@@ -99,6 +99,30 @@ describe('angularLocalStorage module', function () {
         });
     });
 
+    describe('when using initialize()', function() {
+        beforeEach(function () {
+            storage.set('string', 'some test string');
+            storage.set('null', null);
+        });
+
+        it('should return the existing value for a known key', function() {
+            expect(storage.initialize('string', 'initValue')).toEqual('some test string');
+            expect(storage.get('string')).toEqual('some test string');
+        });
+
+        it('should return the new value for an unknown key', function() {
+            expect(storage.initialize('unknownKey', 'initValue')).toEqual('initValue');
+            expect(storage.get('unknownKey')).toEqual('initValue');
+        });
+
+        it('should handle initialize multiple times', function() {
+            expect(storage.initialize('unknownKey', 'initValue')).toEqual('initValue');
+            expect(storage.initialize('unknownKey', 'initValue2')).toEqual('initValue');
+            expect(storage.initialize('unknownKey', 'initValue3')).toEqual('initValue');
+            expect(storage.get('unknownKey')).toEqual('initValue');
+        });
+    });
+
     describe('when bind() $scope field to localStorage', function () {
         beforeEach(function () {
             inject(function ($rootScope) {

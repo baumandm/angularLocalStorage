@@ -66,6 +66,14 @@
           item = storage.getItem(key);
           return (_ref = privateMethods.parseValue(item)) != null ? _ref : defaultValue;
         },
+        initialize: function(key, value) {
+          var currentValue;
+          currentValue = publicMethods.get(key);
+          if (currentValue != null) {
+            return currentValue;
+          }
+          return publicMethods.set(key, value);
+        },
         remove: function(key) {
           var error;
           if (!supported) {
@@ -94,9 +102,7 @@
             opts = angular.isUndefined(opts) ? defaultOpts : angular.extend(defaultOpts, opts);
           }
           storeName = opts.storeName || key;
-          if (!publicMethods.get(storeName)) {
-            publicMethods.set(storeName, opts.defaultValue);
-          }
+          publicMethods.initialize(storeName, opts.defaultValue);
           $parse(key).assign($scope, publicMethods.get(storeName));
           $scope.$watch(key, function(val) {
             if (angular.isDefined(val)) {

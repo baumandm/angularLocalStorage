@@ -83,6 +83,19 @@ angular.module('angularLocalStorage', ['ngCookies'])
                 item = storage.getItem(key)
                 return privateMethods.parseValue(item) ? defaultValue
 
+            # Initialize - Stores a key-value pair unless the key is already in use
+            #
+            # @param key - a string that will be used as the accessor for the pair
+            # @param value - the value of the localStorage item
+            # @returns {*} - will return whatever value is stored in local storage for this key; either
+            #                the existing value or the newly-initialized value
+            initialize: (key, value) ->
+                currentValue = publicMethods.get(key)
+                if currentValue?
+                    return currentValue
+
+                publicMethods.set(key, value)
+
             #
             # Remove - Deletes a key-value pair from localStorage
             #
@@ -118,7 +131,7 @@ angular.module('angularLocalStorage', ['ngCookies'])
 
                 # Backwards compatibility with old defaultValue string
                 if angular.isString(opts) 
-                    opts = angular.extend({}, defaultOpts, { defaultValue:opts })
+                    opts = angular.extend({}, defaultOpts, { defaultValue: opts })
                 else
                     # If no defined options we use defaults, otherwise extend defaults
                     opts = if angular.isUndefined(opts) then defaultOpts else angular.extend(defaultOpts, opts)
@@ -128,9 +141,8 @@ angular.module('angularLocalStorage', ['ngCookies'])
                 storeName = opts.storeName || key
 
                 # If a value doesn't already exist store it as is
-                if !publicMethods.get(storeName)
-                    publicMethods.set(storeName, opts.defaultValue)
-
+                publicMethods.initialize(storeName, opts.defaultValue)
+                
                 # If it does exist, assign it to the $scope value
                 $parse(key).assign($scope, publicMethods.get(storeName))
 
@@ -150,7 +162,7 @@ angular.module('angularLocalStorage', ['ngCookies'])
             # @param key - the name of the variable you are unbinding
             # @param storeName - (optional) if you used a custom storeName you will have to specify it here as well
             #
-            unbind: ($scope,key,storeName) ->
+            unbind: ($scope, key, storeName) ->
                 storeName = storeName || key
                 $parse(key).assign($scope, null)
                 $scope.$watch(key, -> )
