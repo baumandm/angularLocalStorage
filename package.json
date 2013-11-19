@@ -1,10 +1,31 @@
 {
 	"name":"angularLocalStorage",
-	"devDependencies": {
-		"karma": "~0.10",
-		"karma-jasmine": "~0.1"
-	},
-	"scripts": {
-		"test": "./node_modules/.bin/karma start --single-run --browsers PhantomJS"
-	}
+    "description": "AngularJS service providing HTML5 local storage support",
+    "version": "0.1.0",
+    "homepage": "https://github.com/baumandm/angularLocalStorage",
+    "author": "Dave Bauman <baumandm@gmail.com>",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:baumandm/angularLocalStorage.git"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://mit-license.org"
+        }
+    ],
+    "dependencies": {},
+    "devDependencies": {
+        "karma": "~ 0.10",
+        "grunt": ">= 0.4.0",
+        "grunt-karma": "~ 0.6",
+        "grunt-contrib-concat": "*",
+        "grunt-contrib-coffee": "*",
+        "grunt-contrib-uglify": "*",
+        "karma-jasmine": "*",
+        "karma-phantomjs-launcher": "0.1.0"
+    },
+    "scripts": {
+        "test": "grunt karma:unit"
+    }
 }

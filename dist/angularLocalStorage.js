@@ -1,3 +1,10 @@
+/**
+ * AngularJS service providing HTML5 local storage support
+ * @version v0.1.0 - 2013-11-18
+ * @link https://github.com/baumandm/angularLocalStorage
+ * @author Dave Bauman <baumandm@gmail.com>
+ * @license MIT License, http://www.opensource.org/licenses/MIT
+ */
 (function() {
   angular.module('angularLocalStorage', ['ngCookies']).factory('storage', [
     '$parse', '$cookieStore', '$window', '$log', function($parse, $cookieStore, $window, $log) {
