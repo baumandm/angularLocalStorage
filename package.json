@@ -23,7 +23,9 @@
         "grunt-contrib-coffee": "*",
         "grunt-contrib-uglify": "*",
         "karma-jasmine": "*",
-        "karma-phantomjs-launcher": "0.1.0"
+        "karma-phantomjs-launcher": "0.1.0",
+        "karma-chrome-launcher": "0.1.0",
+        "karma-firefox-launcher": "0.1.0"
     },
     "scripts": {
         "test": "grunt karma:unit"

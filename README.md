@@ -1,5 +1,4 @@
-angularLocalStorage [![Build Status](https://travis-ci.org/agrublev/angularLocalStorage.png?branch=master)](https://travis-ci.org/agrublev/angularLocalStorage)
-====================
+# angularLocalStorage
 
 The simpliest localStorage module you will ever use. Allowing you to set, get, and *bind* variables.
 
@@ -43,22 +42,6 @@ The simpliest localStorage module you will ever use. Allowing you to set, get, a
   storage.clearAll();
   ```
 
-## Bower
-This module is available as bower package, install it with this command:
-
-```bash
-bower install angularLocalStorage
-```
-
-or
-
-```bash
-bower install git://github.com/agrublev/angularLocalStorage.git
-```
-
-## Example
-
-For live example please checkout - http://plnkr.co/edit/Y1mrNVRkInCItqvZXtto?p=preview
 
 ## Suggestions?
 

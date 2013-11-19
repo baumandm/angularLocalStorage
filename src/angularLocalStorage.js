@@ -18,6 +18,9 @@
             if (val === 'false') {
               val = false;
             }
+            if (val === 'null') {
+              val = null;
+            }
             if ($window.parseFloat(val) === val && !angular.isObject(val)) {
               val = $window.parseFloat(val);
             }
@@ -31,6 +34,9 @@
       publicMethods = {
         set: function(key, value) {
           var error, saver;
+          if (key == null) {
+            return $log.log('Null keys are not permitted');
+          }
           if (!supported) {
             try {
               $cookieStore.put(key, value);
@@ -44,8 +50,11 @@
           storage.setItem(key, saver);
           return privateMethods.parseValue(saver);
         },
-        get: function(key) {
-          var error, item;
+        get: function(key, defaultValue) {
+          var error, item, _ref;
+          if (defaultValue == null) {
+            defaultValue = null;
+          }
           if (!supported) {
             try {
               return privateMethods.parseValue($.cookie(key));
@@ -55,7 +64,7 @@
             }
           }
           item = storage.getItem(key);
-          return privateMethods.parseValue(item);
+          return (_ref = privateMethods.parseValue(item)) != null ? _ref : defaultValue;
         },
         remove: function(key) {
           var error;

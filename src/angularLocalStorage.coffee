@@ -15,7 +15,10 @@ angular.module('angularLocalStorage', ['ngCookies'])
 
         privateMethods = {
             #
-            # Pass any type of a string from the localStorage to be parsed so it returns a usable version (like an Object)
+            # Pass any type of a string from the localStorage to be parsed so it returns a 
+            # usable version (like an Object).
+            # Converts "true", "false", and "null" to booleans and null, respectively.
+            #
             # @param res - a string that will be parsed for type
             # @returns {*} - whatever the real type of stored value was
             #
@@ -27,6 +30,7 @@ angular.module('angularLocalStorage', ['ngCookies'])
                     
                     if val == 'true' then val = true
                     if val == 'false' then val = false
+                    if val == 'null' then val = null
                     
                     if $window.parseFloat(val) == val and not angular.isObject(val)
                         val = $window.parseFloat(val)
@@ -39,12 +43,16 @@ angular.module('angularLocalStorage', ['ngCookies'])
 
         publicMethods = {
             #
-            # Set - let's you set a new localStorage key pair set
+            # Set - Creates a new localStorage key-value pair
+            #
             # @param key - a string that will be used as the accessor for the pair
             # @param value - the value of the localStorage item
             # @returns {*} - will return whatever it is you've stored in the local storage
             #
             set: (key, value) ->
+                if not key?
+                    return $log.log('Null keys are not permitted');
+
                 if !supported
                     try
                         $cookieStore.put(key, value)
@@ -58,11 +66,13 @@ angular.module('angularLocalStorage', ['ngCookies'])
                 return privateMethods.parseValue(saver)
 
             #
-            # Get - let's you get the value of any pair you've stored
+            # Get - Returns the value of any key-value pair in localStorage
+            #
             # @param key - the string that you set as accessor for the pair
+            # @param defaultValue - optionally returned if the key does not exist or its value is null
             # @returns {*} - Object,String,Float,Boolean depending on what you stored
             #
-            get: (key) ->
+            get: (key, defaultValue = null) ->
                 if !supported
                     try
                         return privateMethods.parseValue($.cookie(key));
@@ -71,12 +81,13 @@ angular.module('angularLocalStorage', ['ngCookies'])
                     
                 
                 item = storage.getItem(key)
-                return privateMethods.parseValue(item)
+                return privateMethods.parseValue(item) ? defaultValue
 
             #
-            # Remove - let's you nuke a value from localStorage
+            # Remove - Deletes a key-value pair from localStorage
+            #
             # @param key - the accessor value
-            # @returns {boolean} - if everything went as planned
+            # @returns {boolean} - true unless an error occured
             #
             remove: (key) ->
                 if !supported

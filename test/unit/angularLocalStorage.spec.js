@@ -1,136 +1,232 @@
 describe('angularLocalStorage module', function () {
-	var storage, testValue, scope;
+    var storage, testValue, scope;
 
-	beforeEach(function () {
-		module('angularLocalStorage');
+    beforeEach(function () {
+        module('angularLocalStorage');
 
-		inject(function ($injector) {
-			storage = $injector.get('storage');
-		});
-	});
+        inject(function ($injector) {
+            storage = $injector.get('storage');
+        });
+    });
 
-	describe('when use set() && get() methods', function () {
+    describe('when use set() && get() methods', function () {
 
-		beforeEach(function () {
-			storage.set('spec', 'some test string');
-		});
+        beforeEach(function () {
+            storage.set('string', 'some test string');
+            storage.set('emptyString', '');
+            storage.set('object', { a: "one", b: 2 });
+            storage.set('array', ['alpha', 2, { c: 'beta' }, false]);
+            storage.set('true', true);
+            storage.set('false', false);
+            storage.set('integer', 199);
+            storage.set('double', 3.141592);
+            storage.set('null', null);
+        });
 
-		beforeEach(function () {
-			testValue = storage.get('spec');
-		});
+        it('should not allow setting a null key', function() {
+            storage.set(null, 'value');
+            expect(storage.get(null)).toNotEqual('value');
+        });
 
-		it('should store value in localStorage', function () {
-			expect(testValue).toBe('some test string');
-		});
-	});
+        it('should store string values', function () {
+            expect(storage.get('string')).toEqual('some test string');
+        });
 
-	describe('when bind() $scope field to localStorage', function () {
-		beforeEach(function () {
-			inject(function ($rootScope) {
-				scope = $rootScope.$new();
+        it('should store empty string values', function () {
+            expect(storage.get('emptyString')).toEqual('');
+        });
 
-				scope.$apply(function () {
-					scope.spec = true;
-				});
+        it('should store object values', function () {
+            expect(storage.get('object')).toEqual({ a: "one", b: 2 });
+        });
 
-				storage.bind(scope, 'spec');
+        it('should store boolean values', function () {
+            expect(storage.get('true')).toEqual(true);
+            expect(storage.get('false')).toEqual(false);
+        });
 
-				scope.$apply(function () {
-					scope.spec = false;
-				});
-			});
-		});
+        it('should store numerical values', function () {
+            expect(storage.get('integer')).toEqual(199);
+            expect(storage.get('double')).toEqual(3.141592);
+        });
 
-		beforeEach(function () {
-			testValue = storage.get('spec');
-		});
+        it('should store arrays', function () {
+            expect(storage.get('array')).toEqual(['alpha', 2, { c: 'beta' }, false]);
+        });
 
-		it('should have $scope value', function () {
-			expect(testValue).toEqual(scope.spec);
-		});
+        it('should store null', function () {
+            expect(storage.get('null')).toBeNull();
+        });
 
-		it('should not store undefined value', function () {
-				scope.$apply(function () {
-					scope.spec = undefined;
-				});
+        it('should return null if not set', function() {
+            expect(storage.get('unknownKey')).toBeNull();
+        });
 
-				expect(testValue).toEqual(false);
-				expect(scope.spec).toBeUndefined();
-		});
+        it('should allow overwriting existing key', function() {
+            var value = 'some test string';
+            storage.set('spec', value);
+            testValue = storage.get('spec');
+            expect(testValue).toEqual(value);
 
-		it('should store default value when passed as string', function() {
-			scope.$apply(function(){
-				storage.bind(scope,'defaultedSpec','someDefault');
-			});
-			expect(scope.defaultedSpec).toEqual('someDefault');
-		});
+            value = 'another test string';
+            storage.set('spec', value);
+            testValue = storage.get('spec');
+            expect(testValue).toEqual(value);
+        });
+    });
 
-		it('should store default value when passed as options object', function() {
-			scope.$apply(function(){
-				storage.bind(scope,'defaultedSpecObj',{defaultValue: 'someNewDefault'});
-			});
-			expect(scope.defaultedSpecObj).toEqual('someNewDefault');
-		});
+    describe('when using get() with a default value', function() {
+        beforeEach(function () {
+            storage.set('string', 'some test string');
+            storage.set('null', null);
+        });
 
-		it('using a custom storeName to bind variable', function() {
-			scope.$apply(function(){
-				storage.bind(scope,'customStored',{defaultValue: 'randomValue123' ,storeName: 'myCustomStore'});
-				scope.directFromLocal = storage.get('myCustomStore');
-			});
-			expect(scope.customStored).toEqual('randomValue123');
-			expect(scope.directFromLocal).toEqual('randomValue123');
-		});
-	});
+        it('should return the default value for an unknown key', function() {
+            expect(storage.get('unknownKey', 'default Value')).toEqual('default Value');
+        });
+
+        it('should return null if the default value is null', function() {
+            expect(storage.get('unknownKey', null)).toBeNull();
+        });
+
+        it('should return the default value for a null value', function() {
+            expect(storage.get('null', 'default Value')).toEqual('default Value');
+        });
+
+        it('should return an object as the default value', function() {
+            var defaultValue = { string: 'A String' };
+            expect(storage.get('unknown Key', defaultValue)).toEqual(defaultValue);
+        });
+    });
+
+    describe('when bind() $scope field to localStorage', function () {
+        beforeEach(function () {
+            inject(function ($rootScope) {
+                scope = $rootScope.$new();
+
+                scope.$apply(function () {
+                    scope.spec = true;
+                });
+
+                storage.bind(scope, 'spec');
+
+                scope.$apply(function () {
+                    scope.spec = false;
+                });
+            });
+        });
+
+        beforeEach(function () {
+            testValue = storage.get('spec');
+        });
+
+        it('should have $scope value', function () {
+            expect(testValue).toEqual(scope.spec);
+        });
+
+        it('should not store undefined value', function () {
+            scope.$apply(function () {
+                scope.spec = undefined;
+            });
+
+            expect(testValue).toEqual(false);
+            expect(scope.spec).toBeUndefined();
+        });
+
+        it('should store default value when passed as string', function() {
+            scope.$apply(function(){
+                storage.bind(scope,'defaultedSpec','someDefault');
+            });
+            expect(scope.defaultedSpec).toEqual('someDefault');
+        });
+
+        it('should store default value when passed as options object', function() {
+            scope.$apply(function(){
+                storage.bind(scope,'defaultedSpecObj',{defaultValue: 'someNewDefault'});
+            });
+            expect(scope.defaultedSpecObj).toEqual('someNewDefault');
+        });
+
+        it('using a custom storeName to bind variable', function() {
+            scope.$apply(function(){
+                storage.bind(scope,'customStored',{defaultValue: 'randomValue123' ,storeName: 'myCustomStore'});
+                scope.directFromLocal = storage.get('myCustomStore');
+            });
+            expect(scope.customStored).toEqual('randomValue123');
+            expect(scope.directFromLocal).toEqual('randomValue123');
+        });
+    });
 
 
-	describe('when unbind() variable that clears localStorage and the variable', function () {
-		var testLocalStorageValue, testLocalVariableValue;
+    describe('when unbind() variable that clears localStorage and the variable', function () {
+        var testLocalStorageValue, testLocalVariableValue;
 
-		beforeEach(function () {
-			storage.unbind(scope, 'spec');
-		});
+        beforeEach(function () {
+            storage.unbind(scope, 'spec');
+        });
 
-		beforeEach(function () {
-			testLocalStorageValue = storage.get('spec');
-			testLocalVariableValue = scope.spec;
-		});
+        beforeEach(function () {
+            testLocalStorageValue = storage.get('spec');
+            testLocalVariableValue = scope.spec;
+        });
 
-		it('should not contain field in storage', function () {
-			expect(testLocalStorageValue).toBeNull();
-		});
+        it('should not contain field in storage', function () {
+            expect(testLocalStorageValue).toBeNull();
+        });
 
-		it('should not contain field in scope', function () {
-			expect(testLocalVariableValue).toBeNull();
-		});
-	});
+        it('should not contain field in scope', function () {
+            expect(testLocalVariableValue).toBeNull();
+        });
+    });
 
-	describe('when remove() field from localStorage', function () {
-		beforeEach(function () {
-			storage.remove('spec');
-		});
+    describe('when remove() field from localStorage', function () {
 
-		beforeEach(function () {
-			testValue = storage.get('spec');
-		});
+        beforeEach(function () {
+            storage.set('key1', 'some test string');
+            storage.set('key2', 'another test string');
+            storage.set('object', { a: "one", b: 2 });
+            storage.set('array', ['alpha', 2, { c: 'beta' }, false]);
+            storage.set('true', true);
+            storage.set('double', 3.141592);
+        });
 
-		it('should not contain field', function () {
-			expect(testValue).toBeNull();
-		});
-	});
+        it('should not contain string value', function () {
+            var returnValue = storage.remove('key1');
+            expect(returnValue).toBe(true);
+            expect(storage.get('key1')).toBeNull();
+        });
 
-	describe('when use clearAll() method all should be gone', function () {
+        it('should not contain object value', function () {
+            var returnValue = storage.remove('object');
+            expect(returnValue).toBe(true);
+            expect(storage.get('object')).toBeNull();
+        });
 
-		beforeEach(function () {
-			storage.set('spec', 'some test string');
-		});
+        it('should do nothing for unknown key', function () {
+            var returnValue = storage.remove('unknownKey');
+            expect(returnValue).toBe(true);
+        });
 
-		beforeEach(function () {
-			storage.clearAll();
-			testValue = storage.get('spec');
-		});
+        it('should do nothing for null key', function () {
+            var returnValue = storage.remove(null);
+            expect(returnValue).toBe(true);
+        });
+    });
 
-		it('should return null for value in localStorage', function () {
-			expect(testValue).toBeNull();
-		});
-	});
+    describe('when use clearAll() method all should be gone', function () {
+
+        beforeEach(function () {
+            storage.set('string', 'some test string');
+            storage.set('object', { value: 'some object' });
+            storage.set('number', 4.5);
+
+            storage.clearAll();
+        });
+
+        it('should return null for value in localStorage', function () {
+            expect(storage.get('string')).toBeNull();
+            expect(storage.get('object')).toBeNull();
+            expect(storage.get('number')).toBeNull();
+        });
+    });
 });
