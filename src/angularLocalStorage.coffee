@@ -39,9 +39,28 @@ angular.module('angularLocalStorage', ['ngCookies'])
                     val = res
 
                 return val
+
+            map: (fn) ->
+                if !supported
+                    return $log.log('Not implemented')
+
+                mapper = (key) -> fn({ key: key, value: publicMethods.get(key)})
+                (mapper(storge.key(i)) for i in [0..length-1])
+
+
+            filteredGet: (fn) ->
+
         }
 
         publicMethods = {
+
+            # 
+            # Size - Gets the total number of key/value pairs in local Storage
+            #
+            # @returns {int} - returns the number of items in local Storage
+            # 
+            size: -> storage.length
+
             #
             # Set - Creates a new localStorage key-value pair
             #
@@ -58,7 +77,7 @@ angular.module('angularLocalStorage', ['ngCookies'])
                         $cookieStore.put(key, value)
                         return value
                     catch error
-                        $log.log('Local Storage not supported, make sure you have angular-cookies enabled.')
+                        return $log.log('Local Storage not supported, make sure you have angular-cookies enabled.')
                 
                 saver = angular.toJson(value)
                 storage.setItem(key, saver)
@@ -82,6 +101,25 @@ angular.module('angularLocalStorage', ['ngCookies'])
                 
                 item = storage.getItem(key)
                 return privateMethods.parseValue(item) ? defaultValue
+
+            #
+            # GetPairs - Returns an array of all key/value pairs for which the predicate function
+            # returns true.  Each pair will be represented as {"key": key, "value": value}
+            #
+            # @param predicate - a function that accepts a key/value pair and returns true or false
+            # @returns {array} - will return an array of values that passed the predicate test
+            #
+            getPairs: (predicate) ->
+                result = []
+
+                for i in [0..storage.length-1]
+                    do (i) ->
+                        key = storage.key(i)
+                        pair = { key: key, value: publicMethods.get(key)}
+                        if predicate(pair) then result.push pair
+
+                return result
+
 
             # Initialize - Stores a key-value pair unless the key is already in use
             #
@@ -113,6 +151,22 @@ angular.module('angularLocalStorage', ['ngCookies'])
                 
                 storage.removeItem(key)
                 return true
+
+            #
+            # RemovePairs - Removes all key/value pairs for which the predicate function
+            # returns true.  Each pair will be represented as {"key": key, "value": value}
+            #
+            # @param predicate - a function that accepts a key/value pair and returns true or false
+            # @returns {integer} - the number of pairs which were removed
+            #
+            removePairs: (predicate) ->
+                pairs = publicMethods.getPairs(predicate)
+
+                for pair in pairs
+                    do (pair) ->
+                        publicMethods.remove pair.key
+
+                return pairs.length
 
             #
             # Bind - let's you directly bind a localStorage value to a $scope variable

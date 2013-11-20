@@ -206,6 +206,7 @@ describe('angularLocalStorage module', function () {
     describe('when remove() field from localStorage', function () {
 
         beforeEach(function () {
+            storage.clearAll();
             storage.set('key1', 'some test string');
             storage.set('key2', 'another test string');
             storage.set('object', { a: "one", b: 2 });
@@ -218,22 +219,26 @@ describe('angularLocalStorage module', function () {
             var returnValue = storage.remove('key1');
             expect(returnValue).toBe(true);
             expect(storage.get('key1')).toBeNull();
+            expect(storage.size()).toEqual(5);
         });
 
         it('should not contain object value', function () {
             var returnValue = storage.remove('object');
             expect(returnValue).toBe(true);
             expect(storage.get('object')).toBeNull();
+            expect(storage.size()).toEqual(5);
         });
 
         it('should do nothing for unknown key', function () {
             var returnValue = storage.remove('unknownKey');
             expect(returnValue).toBe(true);
+            expect(storage.size()).toEqual(6);
         });
 
         it('should do nothing for null key', function () {
             var returnValue = storage.remove(null);
             expect(returnValue).toBe(true);
+            expect(storage.size()).toEqual(6);
         });
     });
 
@@ -247,10 +252,72 @@ describe('angularLocalStorage module', function () {
             storage.clearAll();
         });
 
+        it('should have a size of 0', function() {
+            expect(storage.size()).toEqual(0);
+        });
+
         it('should return null for value in localStorage', function () {
             expect(storage.get('string')).toBeNull();
             expect(storage.get('object')).toBeNull();
             expect(storage.get('number')).toBeNull();
+        });
+    });
+
+    describe('when using getPairs()', function () {
+
+        beforeEach(function () {
+            storage.set('alpha-1', 'some test string');
+            storage.set('alpha-2', 'another string');
+            storage.set('beta-1', 'test string');
+            storage.set('alpha-3', 'string value');
+        });
+
+        it('should return pairs that match the key predicate', function () {
+            pairs = storage.getPairs(function (pair) { return pair.key.indexOf('alpha') === 0; });
+            expect(pairs.length).toEqual(3);
+        });
+
+        it('should return pairs that match the value predicate', function () {
+            pairs = storage.getPairs(function (pair) { return pair.value.indexOf('value') > 0; });
+            expect(pairs.length).toEqual(1);
+        });
+
+        it('should return an empty array if nothing matches', function () {
+            pairs = storage.getPairs(function (pair) { return false; });
+            expect(pairs.length).toEqual(0);
+        });
+    });
+
+    describe('when using removePairs()', function () {
+
+        beforeEach(function () {
+            storage.clearAll();
+            storage.set('alpha-1', 'some test string');
+            storage.set('alpha-2', 'another string');
+            storage.set('beta-1', 'test string');
+            storage.set('beta-2', 'test string');
+            storage.set('alpha-3', 'string value');
+        });
+
+        it('should remove pairs that match the key predicate', function () {
+            var count = storage.removePairs(function (pair) { return pair.key.indexOf('alpha') === 0; });
+            expect(count).toEqual(3);
+
+            expect(storage.size()).toEqual(2);
+        });
+
+        it('should remove pairs that match the value predicate', function () {
+            var count = storage.removePairs(function (pair) { return pair.value.indexOf('value') > 0; });
+            expect(count).toEqual(1);
+
+            expect(storage.size()).toEqual(4);
+        });
+
+        it('should remove nothing if nothing matches', function () {
+            var count = storage.removePairs(function (pair) { return false; });
+            expect(count).toEqual(0);
+
+            expect(storage.size()).toEqual(5);
         });
     });
 });

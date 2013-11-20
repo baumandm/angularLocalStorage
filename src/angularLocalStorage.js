@@ -29,9 +29,30 @@
             val = res;
           }
           return val;
-        }
+        },
+        map: function(fn) {
+          var i, mapper, _i, _ref, _results;
+          if (!supported) {
+            return $log.log('Not implemented');
+          }
+          mapper = function(key) {
+            return fn({
+              key: key,
+              value: publicMethods.get(key)
+            });
+          };
+          _results = [];
+          for (i = _i = 0, _ref = length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+            _results.push(mapper(storge.key(i)));
+          }
+          return _results;
+        },
+        filteredGet: function(fn) {}
       };
       publicMethods = {
+        size: function() {
+          return storage.length;
+        },
         set: function(key, value) {
           var error, saver;
           if (key == null) {
@@ -43,7 +64,7 @@
               return value;
             } catch (_error) {
               error = _error;
-              $log.log('Local Storage not supported, make sure you have angular-cookies enabled.');
+              return $log.log('Local Storage not supported, make sure you have angular-cookies enabled.');
             }
           }
           saver = angular.toJson(value);
@@ -66,6 +87,25 @@
           item = storage.getItem(key);
           return (_ref = privateMethods.parseValue(item)) != null ? _ref : defaultValue;
         },
+        getPairs: function(predicate) {
+          var i, result, _fn, _i, _ref;
+          result = [];
+          _fn = function(i) {
+            var key, pair;
+            key = storage.key(i);
+            pair = {
+              key: key,
+              value: publicMethods.get(key)
+            };
+            if (predicate(pair)) {
+              return result.push(pair);
+            }
+          };
+          for (i = _i = 0, _ref = storage.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+            _fn(i);
+          }
+          return result;
+        },
         initialize: function(key, value) {
           var currentValue;
           currentValue = publicMethods.get(key);
@@ -87,6 +127,18 @@
           }
           storage.removeItem(key);
           return true;
+        },
+        removePairs: function(predicate) {
+          var pair, pairs, _fn, _i, _len;
+          pairs = publicMethods.getPairs(predicate);
+          _fn = function(pair) {
+            return publicMethods.remove(pair.key);
+          };
+          for (_i = 0, _len = pairs.length; _i < _len; _i++) {
+            pair = pairs[_i];
+            _fn(pair);
+          }
+          return pairs.length;
         },
         bind: function($scope, key, opts) {
           var defaultOpts, storeName;
