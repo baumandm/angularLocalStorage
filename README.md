@@ -1,6 +1,6 @@
 # angularLocalStorage
 
-This is a fully-featured AngularJS service for accessing HTML5 localStorage.  It was forked from the excellent and lightweight implementation by agrublev, [angularLocalStorage](https://github.com/agrublev/angularLocalStorage).  This version implements additional commonly-used methods with the goal of reducing duplication within an AngularJS application.  It should be drop-in compatible with the original, with the exception that cookie backwards compatibility has been removed.
+This is a fully-featured AngularJS service for accessing [HTML5 localStorage](http://dev.w3.org/html5/webstorage/#storage-0).  It was forked from the excellent and lightweight implementation by agrublev, [angularLocalStorage](https://github.com/agrublev/angularLocalStorage).  This version implements additional commonly-used methods with the goal of reducing duplication within an AngularJS application.  It should be drop-in compatible with the original, with the exception that cookie backwards compatibility has been removed.
 
 
 ## Features:
