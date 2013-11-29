@@ -12,7 +12,6 @@ module.exports = function(config) {
             'test/lib/angular/angular.js',
             'test/lib/angular/angular-mocks.js',
             'test/lib/angular/angular-cookies.js',
-            'test/lib/*.js',
             'src/*.js',
             'test/unit/*.js'
         ],
@@ -54,8 +53,8 @@ module.exports = function(config) {
         // CLI --browsers Chrome,Firefox,Safari
         browsers: [
             'PhantomJS',
-            'Firefox',
-            'Chrome'
+            //'Firefox',
+            //'Chrome'
         ],
 
         // If browser does not capture in given timeout [ms], kill it

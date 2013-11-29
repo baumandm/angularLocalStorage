@@ -88,8 +88,4 @@ module.exports = function(grunt) {
     // Build task.
     grunt.registerTask('build', ['test', 'concat', 'uglify']);
 
-    // run devserver
-    grunt.registerTask('webserver', ['connect:devserver']);
-
-
 };
