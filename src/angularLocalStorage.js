@@ -100,6 +100,15 @@
             return storage.setItem(key, value + incrementBy);
           }
         },
+        decrement: function(key, defaultValue, decrementBy) {
+          if (defaultValue == null) {
+            defaultValue = 0;
+          }
+          if (decrementBy == null) {
+            decrementBy = 1;
+          }
+          return publicMethods.increment(key, defaultValue, -decrementBy);
+        },
         remove: function(key) {
           storage.removeItem(key);
           return true;

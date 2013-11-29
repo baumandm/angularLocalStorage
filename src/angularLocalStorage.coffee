@@ -113,8 +113,8 @@ angular.module('angularLocalStorage', [])
 
 
             # Increment - Increments a key's value by 1.  If it does not exist, it will be created
-            # with the defaultValue, which defaults to 1.  The defaultValue will not be incremented, so 
-            # the key will have the defaultValue after one call to increment().
+            # with the defaultValue, which defaults to 1.  The key will have the defaultValue after 
+            # one call to increment(), while subsequent calls will increase the value further.
             #
             # Throws an exception if the existing value is not a numerical value.
             #
@@ -134,7 +134,20 @@ angular.module('angularLocalStorage', [])
                         throw 'Existing value is not a number.'
 
                     storage.setItem(key, value + incrementBy)
-                    
+
+            # Decrement - Decrements a key's value by 1.  If it does not exist, it will be created
+            # with the defaultValue, which defaults to 0.  The key will have the defaultValue after 
+            # one call to decrement(), while subsequent calls will lower the value further.
+            #
+            # Throws an exception if the existing value is not a numerical value.
+            #
+            # @param key - a string that will be used as the accessor for the pair
+            # @param defaultValue - optional value to set if the key does not exist, defaults to 0
+            # @param incrementBy - optional step amount for each decrement, defautls to -1
+            # @returns {*} - undefined
+            #
+            decrement: (key, defaultValue = 0, decrementBy = 1) ->
+                publicMethods.increment key, defaultValue, -decrementBy
 
             #
             # Remove - Deletes a key-value pair from localStorage
