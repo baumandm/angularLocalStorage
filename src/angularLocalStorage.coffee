@@ -1,10 +1,8 @@
-angular.module('angularLocalStorage', ['ngCookies'])
+angular.module('angularLocalStorage', [])
 .factory 'storage', [
     '$parse', 
-    '$cookieStore', 
     '$window', 
-    '$log', 
-    ($parse, $cookieStore, $window, $log) ->
+    ($parse, $window) ->
 
 
         #

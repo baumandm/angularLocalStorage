@@ -1,6 +1,6 @@
 (function() {
-  angular.module('angularLocalStorage', ['ngCookies']).factory('storage', [
-    '$parse', '$cookieStore', '$window', '$log', function($parse, $cookieStore, $window, $log) {
+  angular.module('angularLocalStorage', []).factory('storage', [
+    '$parse', '$window', function($parse, $window) {
       var privateMethods, publicMethods, storage, supported;
       storage = $window.localStorage != null ? $window.localStorage : null;
       supported = storage != null;
