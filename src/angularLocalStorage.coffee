@@ -40,19 +40,11 @@ angular.module('angularLocalStorage', ['ngCookies'])
 
                 return val
 
-            map: (fn) ->
-                if !supported
-                    return $log.log('Not implemented')
-
-                mapper = (key) -> fn({ key: key, value: publicMethods.get(key)})
-                (mapper(storge.key(i)) for i in [0..length-1])
-
-
-            filteredGet: (fn) ->
-
         }
 
         publicMethods = {
+
+            isSupported: -> supported
 
             # 
             # Size - Gets the total number of key/value pairs in local Storage
@@ -70,15 +62,8 @@ angular.module('angularLocalStorage', ['ngCookies'])
             #
             set: (key, value) ->
                 if not key?
-                    return $log.log('Null keys are not permitted');
+                    throw 'Null keys are not permitted.'
 
-                if !supported
-                    try
-                        $cookieStore.put(key, value)
-                        return value
-                    catch error
-                        return $log.log('Local Storage not supported, make sure you have angular-cookies enabled.')
-                
                 saver = angular.toJson(value)
                 storage.setItem(key, saver)
 
@@ -92,14 +77,8 @@ angular.module('angularLocalStorage', ['ngCookies'])
             # @returns {*} - Object,String,Float,Boolean depending on what you stored
             #
             get: (key, defaultValue = null) ->
-                if !supported
-                    try
-                        return privateMethods.parseValue($.cookie(key));
-                    catch error
-                        return null
-                    
-                
                 item = storage.getItem(key)
+
                 return privateMethods.parseValue(item) ? defaultValue
 
             #
@@ -134,21 +113,38 @@ angular.module('angularLocalStorage', ['ngCookies'])
 
                 publicMethods.set(key, value)
 
+
+            # Increment - Increments a key's value by 1.  If it does not exist, it will be created
+            # with the defaultValue, which defaults to 1.  The defaultValue will not be incremented, so 
+            # the key will have the defaultValue after one call to increment().
+            #
+            # Throws an exception if the existing value is not a numerical value.
+            #
+            # @param key - a string that will be used as the accessor for the pair
+            # @param defaultValue - optional value to set if the key does not exist, defaults to 1
+            # @param incrementBy - optional step amount for each increment, defautls to 1
+            # @returns {*} - undefined
+            #
+            increment: (key, defaultValue = 1, incrementBy = 1) ->
+                value = publicMethods.get(key)
+
+                if not value?
+                    storage.setItem(key, defaultValue)
+
+                else
+                    if typeof value != 'number' && toString.call(value) != '[object Number]'
+                        throw 'Existing value is not a number.'
+
+                    storage.setItem(key, value + incrementBy)
+                    
+
             #
             # Remove - Deletes a key-value pair from localStorage
             #
             # @param key - the accessor value
             # @returns {boolean} - true unless an error occured
             #
-            remove: (key) ->
-                if !supported
-                    try
-                        $cookieStore.remove(key)
-                        return true
-                    catch error
-                        return false
-                    
-                
+            remove: (key) ->               
                 storage.removeItem(key)
                 return true
 

@@ -6,6 +6,15 @@ describe('angularLocalStorage module', function () {
 
         inject(function ($injector) {
             storage = $injector.get('storage');
+
+            storage.clearAll()
+        });
+    });
+
+    describe('when using isSupported', function() {
+        
+        it('should return true', function() {
+            expect(storage.isSupported()).toEqual(true);
         });
     });
 
@@ -24,8 +33,8 @@ describe('angularLocalStorage module', function () {
         });
 
         it('should not allow setting a null key', function() {
-            storage.set(null, 'value');
-            expect(storage.get(null)).toNotEqual('value');
+            
+            expect(function() { storage.set(null, 'value'); }).toThrow("Null keys are not permitted.")
         });
 
         it('should store string values', function () {
@@ -120,6 +129,69 @@ describe('angularLocalStorage module', function () {
             expect(storage.initialize('unknownKey', 'initValue2')).toEqual('initValue');
             expect(storage.initialize('unknownKey', 'initValue3')).toEqual('initValue');
             expect(storage.get('unknownKey')).toEqual('initValue');
+        });
+    });
+
+    describe('when using increment()', function() {
+        beforeEach(function () {
+            storage.set('integer', 10);
+            storage.set('float', 3.1);
+            storage.set('string', 'some test string');
+            storage.set('null', null);
+        });
+
+        it('should increment the existing integer value for a known key', function() {
+            storage.increment('integer');
+            expect(storage.get('integer')).toEqual(11);
+
+            storage.increment('integer');
+            storage.increment('integer');
+            expect(storage.get('integer')).toEqual(13);
+        });
+
+        it('should increment the existing float value for a known key', function() {
+            storage.increment('float');
+            expect(storage.get('float')).toEqual(4.1);
+
+            storage.increment('float');
+            storage.increment('float');
+            expect(storage.get('float')).toEqual(6.1);
+        });
+
+        it('should throw an exception if the value is a string', function() {
+            expect(function() { storage.increment('string'); }).toThrow("Existing value is not a number.")
+        });
+
+        it('should initialize with the default value of 1 if the value is null', function() {
+            storage.increment('null');
+            expect(storage.get('null')).toEqual(1); 
+        });
+
+        it('should initialize with the default value of 1', function() {
+            storage.increment('newValue');
+            expect(storage.get('newValue')).toEqual(1);
+
+            storage.increment('newValue');
+            storage.increment('newValue');
+            expect(storage.get('newValue')).toEqual(3);
+        });
+
+        it('should initialize with a custom default value of 10', function() {
+            storage.increment('newValue', 10);
+            expect(storage.get('newValue')).toEqual(10);
+
+            storage.increment('newValue');
+            storage.increment('newValue');
+            expect(storage.get('newValue')).toEqual(12);
+        });
+
+        it('should increment by a custom amount', function() {
+            storage.increment('newValue', 10, 10);
+            expect(storage.get('newValue')).toEqual(10);
+
+            storage.increment('newValue', 10, 10);
+            storage.increment('newValue', 10, 10);
+            expect(storage.get('newValue')).toEqual(30);
         });
     });
 

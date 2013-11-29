@@ -29,60 +29,28 @@
             val = res;
           }
           return val;
-        },
-        map: function(fn) {
-          var i, mapper, _i, _ref, _results;
-          if (!supported) {
-            return $log.log('Not implemented');
-          }
-          mapper = function(key) {
-            return fn({
-              key: key,
-              value: publicMethods.get(key)
-            });
-          };
-          _results = [];
-          for (i = _i = 0, _ref = length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-            _results.push(mapper(storge.key(i)));
-          }
-          return _results;
-        },
-        filteredGet: function(fn) {}
+        }
       };
       publicMethods = {
+        isSupported: function() {
+          return supported;
+        },
         size: function() {
           return storage.length;
         },
         set: function(key, value) {
-          var error, saver;
+          var saver;
           if (key == null) {
-            return $log.log('Null keys are not permitted');
-          }
-          if (!supported) {
-            try {
-              $cookieStore.put(key, value);
-              return value;
-            } catch (_error) {
-              error = _error;
-              return $log.log('Local Storage not supported, make sure you have angular-cookies enabled.');
-            }
+            throw 'Null keys are not permitted.';
           }
           saver = angular.toJson(value);
           storage.setItem(key, saver);
           return privateMethods.parseValue(saver);
         },
         get: function(key, defaultValue) {
-          var error, item, _ref;
+          var item, _ref;
           if (defaultValue == null) {
             defaultValue = null;
-          }
-          if (!supported) {
-            try {
-              return privateMethods.parseValue($.cookie(key));
-            } catch (_error) {
-              error = _error;
-              return null;
-            }
           }
           item = storage.getItem(key);
           return (_ref = privateMethods.parseValue(item)) != null ? _ref : defaultValue;
@@ -114,17 +82,25 @@
           }
           return publicMethods.set(key, value);
         },
-        remove: function(key) {
-          var error;
-          if (!supported) {
-            try {
-              $cookieStore.remove(key);
-              return true;
-            } catch (_error) {
-              error = _error;
-              return false;
-            }
+        increment: function(key, defaultValue, incrementBy) {
+          var value;
+          if (defaultValue == null) {
+            defaultValue = 1;
           }
+          if (incrementBy == null) {
+            incrementBy = 1;
+          }
+          value = publicMethods.get(key);
+          if (value == null) {
+            return storage.setItem(key, defaultValue);
+          } else {
+            if (typeof value !== 'number' && toString.call(value) !== '[object Number]') {
+              throw 'Existing value is not a number.';
+            }
+            return storage.setItem(key, value + incrementBy);
+          }
+        },
+        remove: function(key) {
           storage.removeItem(key);
           return true;
         },
