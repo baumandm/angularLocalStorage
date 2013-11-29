@@ -109,8 +109,11 @@
           }
           return publicMethods.increment(key, defaultValue, -decrementBy);
         },
-        remove: function(key) {
-          storage.removeItem(key);
+        remove: function(keyOrFunction) {
+          if (typeof keyOrFunction === 'function') {
+            return publicMethods.removePairs(keyOrFunction);
+          }
+          storage.removeItem(keyOrFunction);
           return true;
         },
         removePairs: function(predicate) {

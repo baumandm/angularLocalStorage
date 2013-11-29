@@ -441,6 +441,39 @@ describe('angularLocalStorage module', function () {
         });
     });
 
+    describe('when using remove() with a predicate', function () {
+
+        beforeEach(function () {
+            storage.clearAll();
+            storage.set('alpha-1', 'some test string');
+            storage.set('alpha-2', 'another string');
+            storage.set('beta-1', 'test string');
+            storage.set('beta-2', 'test string');
+            storage.set('alpha-3', 'string value');
+        });
+
+        it('should remove pairs that match the key predicate', function () {
+            var count = storage.remove(function (pair) { return pair.key.indexOf('alpha') === 0; });
+            expect(count).toEqual(3);
+
+            expect(storage.size()).toEqual(2);
+        });
+
+        it('should remove pairs that match the value predicate', function () {
+            var count = storage.remove(function (pair) { return pair.value.indexOf('value') > 0; });
+            expect(count).toEqual(1);
+
+            expect(storage.size()).toEqual(4);
+        });
+
+        it('should remove nothing if nothing matches', function () {
+            var count = storage.remove(function (pair) { return false; });
+            expect(count).toEqual(0);
+
+            expect(storage.size()).toEqual(5);
+        });
+    });
+
     describe('when using removePairs()', function () {
 
         beforeEach(function () {

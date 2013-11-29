@@ -150,13 +150,18 @@ angular.module('angularLocalStorage', [])
                 publicMethods.increment key, defaultValue, -decrementBy
 
             #
-            # Remove - Deletes a key-value pair from localStorage
+            # Remove - Deletes a key-value pair from localStorage, or if passed a function, 
+            # removes all key/value pairs for which the predicate function returns true.
             #
-            # @param key - the accessor value
-            # @returns {boolean} - true unless an error occured
+            # @param keyOrFunction - the accessor value OR a predicate function
+            # @returns {boolean} - true unless an error occured.  If a predicate was provided, returns
+            # the number of pairs which were removed
             #
-            remove: (key) ->               
-                storage.removeItem(key)
+            remove: (keyOrFunction) ->
+                if typeof keyOrFunction == 'function'
+                    return publicMethods.removePairs keyOrFunction
+
+                storage.removeItem(keyOrFunction)
                 return true
 
             #
