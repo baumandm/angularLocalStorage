@@ -1,53 +1,68 @@
 # angularLocalStorage
 
-The simpliest localStorage module you will ever use. Allowing you to set, get, and *bind* variables.
+This is a fully-featured AngularJS service for accessing HTML5 localStorage.  It was forked from the excellent and lightweight implementation by agrublev, [angularLocalStorage](https://github.com/agrublev/angularLocalStorage).  This version implements additional commonly-used methods with the goal of reducing duplication within an AngularJS application.  It should be drop-in compatible with the original, with the exception that cookie backwards compatibility has been removed.
+
 
 ## Features:
 
-* Two way bind your $scope variable value to a localStorage key/pair which will be updated whenever the model is updated.
-* You can directly store Objects, Arrays, Floats, Booleans, and Strings. No need to convert your javascript values from strings.
-* Fallback to Angular ``$cookies`` if localStorage is not supported (REMEMBER to add ``angular-cookies.min.js`` script to your project or remove ``'ngCookies'`` from a dependency);
+* Two-way binding from $scope variables to a localStorage key/pair, which will be automatically updated whenever the model changes.
+* Supports directly storing Objects, Arrays, Floats, Booleans, and Strings.  Automatically converts and deconverts on read/write.
+* Predicate-based functions for querying/removing values from storage.
+
+## Differences from the Original
+
+* Implemented additional methods.
+* Does not support cookie fallback.  I did not have time to implement it (and test it) across all the new methods, so it was removed.
+* Rewritten in CoffeeScript.  It is also compiled to Javascript and minified, so either of the 3 versions can be used.
+
 
 ## How to use
 
-1. Just add this module to your app as a dependency
-``var yourApp = angular.module('yourApp', [..., 'angularLocalStorage']``
-2. Now inside your controllers simply pass the storage factory like this
-``yourApp.controller('yourController', function( $scope, storage){``
-3. Using the ``storage`` factory
-  ```
-  // binding it to a $scope.variable (minimal)
-  storage.bind($scope,'varName');
-  // binding full
-  storage.bind($scope,'varName',{defaultValue: 'randomValue123' ,storeName: 'customStoreKey'});
-  // the params are ($scope, varName, opts(optional))
-  // $scope - pass a reference to whatever scope the variable resides in
-  // varName - the variable name so for $scope.firstName enter 'firstName'
-  // opts - custom options like default value or unique store name
-  // 	Here are the available options you can set:
-  // 		* defaultValue: the default value
-  // 		* storeName: add a custom store key value instead of using the scope variable name
+1. Add the ``angularLocalStorage`` module to your app as a dependency:
 
-  // will constantly be updating $scope.viewType
-  // to change the variable both locally in your controller and in localStorage just do
-  $scope.viewType = 'ANYTHING';
-  // that's it, it will be updated in localStorage
+        var yourApp = angular.module('yourApp', [..., 'angularLocalStorage']
 
-  // just storing something in localStorage with cookie backup for unsupported browsers
-  storage.set('key','value');
-  // getting that value
-  storage.get('key');
+2. Inject the ``storage`` service into your controllers:
 
-  // clear all localStorage values
-  storage.clearAll();
-  ```
+        yourApp.controller('yourController', function($scope, storage) {
 
+    or 
+        
+        yourApp.controller('yourController', ['$scope', 'storage', function($scope, storage) {
+
+3. Use ``storage`` service
+        ```
+        /* Initialize a value if it doesn't exist */
+        storage.initialize('currentPage', 'home');
+
+        /* Get a value */
+        $scope.currentPage = storage.get('currentPage');
+
+        /* Set a value */
+        storage.set('currentPage', 'search');
+
+        /* Bind a value to the $scope */
+        storage.bind($scope, 'currentPage');
+
+        /* Bind a value to the $scope with options */
+        storage.bind($scope, 'session', { defaultValue: {}, storeName: 'session-settings'});
+
+        /* Increment a number, default value of 1 */
+        storage.increment('pageHits', 1);
+
+        /* Decrement a number */
+        storage.decrement('quantity');
+
+        /* Remove keys that start with "session-" */
+        storage.remove(function (pair) { return pair.key.indexOf('session-') === 0; });
+
+
+        /* Clear all values in localStorage */
+        storage.clearAll();
+
+        ```
 
 ## Suggestions?
 
-Please add an issue with ideas, improvements, or bugs! Thanks!
-
----
-
-(c) 2013 MIT License
+Feel free to suggest ideas, improvements, or bugs.  Contributions welcome.
 
