@@ -14,7 +14,7 @@ module.exports = function(config) {
             'test/lib/angular/angular-cookies.js',
             'src/*.js',
             'test/angularLocalStorage.spec.js',
-            'test/unit/*.js'
+            'test/unit/*.spec.*'
         ],
 
         // list of files to exclude
@@ -72,6 +72,7 @@ module.exports = function(config) {
 
         plugins: [
             'karma-jasmine',
+            'karma-coffee-preprocessor',
             'karma-phantomjs-launcher',
             'karma-chrome-launcher',
             'karma-firefox-launcher'

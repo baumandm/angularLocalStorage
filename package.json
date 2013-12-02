@@ -23,6 +23,7 @@
         "grunt-contrib-coffee": "*",
         "grunt-contrib-uglify": "*",
         "karma-jasmine": "*",
+        "karma-coffee-preprocessor": "~0.0.2",
         "karma-phantomjs-launcher": "0.1.0",
         "karma-chrome-launcher": "0.1.0",
         "karma-firefox-launcher": "0.1.0"
