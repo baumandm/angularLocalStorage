@@ -1,17 +1,36 @@
 /**
  * AngularJS service providing HTML5 local storage support
- * @version v0.1.0 - 2013-11-29
+ * @version v0.1.0 - 2013-12-01
  * @link https://github.com/baumandm/angularLocalStorage
  * @author Dave Bauman <baumandm@gmail.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */
 (function() {
-  angular.module('angularLocalStorage', ['ngCookies']).factory('storage', [
-    '$parse', '$cookieStore', '$window', '$log', function($parse, $cookieStore, $window, $log) {
+  angular.module('angularLocalStorage', []).factory('storage', [
+    '$parse', '$window', function($parse, $window) {
       var privateMethods, publicMethods, storage, supported;
       storage = $window.localStorage != null ? $window.localStorage : null;
       supported = storage != null;
       privateMethods = {
+        getPairs: function(predicate) {
+          var i, result, _fn, _i, _ref;
+          result = [];
+          _fn = function(i) {
+            var key, pair;
+            key = storage.key(i);
+            pair = {
+              key: key,
+              value: publicMethods.get(key)
+            };
+            if (predicate(pair)) {
+              return result.push(pair);
+            }
+          };
+          for (i = _i = 0, _ref = storage.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+            _fn(i);
+          }
+          return result;
+        },
         parseValue: function(res) {
           var error, val;
           try {
@@ -36,64 +55,50 @@
             val = res;
           }
           return val;
+        },
+        removePairs: function(predicate) {
+          var pair, pairs, _fn, _i, _len;
+          pairs = privateMethods.getPairs(predicate);
+          _fn = function(pair) {
+            return publicMethods.remove(pair.key);
+          };
+          for (_i = 0, _len = pairs.length; _i < _len; _i++) {
+            pair = pairs[_i];
+            _fn(pair);
+          }
+          return pairs.length;
         }
       };
       publicMethods = {
+        isSupported: function() {
+          return supported;
+        },
         size: function() {
           return storage.length;
         },
         set: function(key, value) {
-          var error, saver;
+          var saver;
           if (key == null) {
-            return $log.log('Null keys are not permitted');
-          }
-          if (!supported) {
-            try {
-              $cookieStore.put(key, value);
-              return value;
-            } catch (_error) {
-              error = _error;
-              return $log.log('Local Storage not supported, make sure you have angular-cookies enabled.');
-            }
+            throw 'Null keys are not permitted.';
           }
           saver = angular.toJson(value);
           storage.setItem(key, saver);
           return privateMethods.parseValue(saver);
         },
-        get: function(key, defaultValue) {
-          var error, item, _ref;
+        get: function(keyOrFunction, defaultValue) {
+          var item, pairs, _ref;
           if (defaultValue == null) {
             defaultValue = null;
           }
-          if (!supported) {
-            try {
-              return privateMethods.parseValue($.cookie(key));
-            } catch (_error) {
-              error = _error;
-              return null;
+          if (typeof keyOrFunction === 'function') {
+            pairs = privateMethods.getPairs(keyOrFunction);
+            if (pairs.length === 0 && (defaultValue != null)) {
+              return defaultValue;
             }
+            return pairs;
           }
-          item = storage.getItem(key);
+          item = storage.getItem(keyOrFunction);
           return (_ref = privateMethods.parseValue(item)) != null ? _ref : defaultValue;
-        },
-        getPairs: function(predicate) {
-          var i, result, _fn, _i, _ref;
-          result = [];
-          _fn = function(i) {
-            var key, pair;
-            key = storage.key(i);
-            pair = {
-              key: key,
-              value: publicMethods.get(key)
-            };
-            if (predicate(pair)) {
-              return result.push(pair);
-            }
-          };
-          for (i = _i = 0, _ref = storage.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-            _fn(i);
-          }
-          return result;
         },
         initialize: function(key, value) {
           var currentValue;
@@ -103,31 +108,39 @@
           }
           return publicMethods.set(key, value);
         },
-        remove: function(key) {
-          var error;
-          if (!supported) {
-            try {
-              $cookieStore.remove(key);
-              return true;
-            } catch (_error) {
-              error = _error;
-              return false;
+        increment: function(key, defaultValue, incrementBy) {
+          var value;
+          if (defaultValue == null) {
+            defaultValue = 1;
+          }
+          if (incrementBy == null) {
+            incrementBy = 1;
+          }
+          value = publicMethods.get(key);
+          if (value == null) {
+            return storage.setItem(key, defaultValue);
+          } else {
+            if (typeof value !== 'number' && toString.call(value) !== '[object Number]') {
+              throw 'Existing value is not a number.';
             }
+            return storage.setItem(key, value + incrementBy);
           }
-          storage.removeItem(key);
-          return true;
         },
-        removePairs: function(predicate) {
-          var pair, pairs, _fn, _i, _len;
-          pairs = publicMethods.getPairs(predicate);
-          _fn = function(pair) {
-            return publicMethods.remove(pair.key);
-          };
-          for (_i = 0, _len = pairs.length; _i < _len; _i++) {
-            pair = pairs[_i];
-            _fn(pair);
+        decrement: function(key, defaultValue, decrementBy) {
+          if (defaultValue == null) {
+            defaultValue = 0;
           }
-          return pairs.length;
+          if (decrementBy == null) {
+            decrementBy = 1;
+          }
+          return publicMethods.increment(key, defaultValue, -decrementBy);
+        },
+        remove: function(keyOrFunction) {
+          if (typeof keyOrFunction === 'function') {
+            return privateMethods.removePairs(keyOrFunction);
+          }
+          storage.removeItem(keyOrFunction);
+          return true;
         },
         bind: function($scope, key, opts) {
           var defaultOpts, storeName;

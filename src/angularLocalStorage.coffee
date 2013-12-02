@@ -11,7 +11,26 @@ angular.module('angularLocalStorage', [])
         storage = if $window.localStorage? then $window.localStorage else null
         supported = storage?
 
-        privateMethods = {
+        privateMethods =
+
+            #
+            # GetPairs - Returns an array of all key/value pairs for which the predicate function
+            # returns true.  Each pair will be represented as {"key": key, "value": value}
+            #
+            # @param predicate - a function that accepts a key/value pair and returns true or false
+            # @returns {array} - will return an array of values that passed the predicate test
+            #
+            getPairs: (predicate) ->
+                result = []
+
+                for i in [0..storage.length-1]
+                    do (i) ->
+                        key = storage.key(i)
+                        pair = { key: key, value: publicMethods.get(key)}
+                        if predicate(pair) then result.push pair
+
+                return result
+
             #
             # Pass any type of a string from the localStorage to be parsed so it returns a 
             # usable version (like an Object).
@@ -38,9 +57,24 @@ angular.module('angularLocalStorage', [])
 
                 return val
 
-        }
+            #
+            # RemovePairs - Removes all key/value pairs for which the predicate function
+            # returns true.  Each pair will be represented as {"key": key, "value": value}
+            #
+            # @param predicate - a function that accepts a key/value pair and returns true or false
+            # @returns {integer} - the number of pairs which were removed
+            #
+            removePairs: (predicate) ->
+                pairs = privateMethods.getPairs(predicate)
 
-        publicMethods = {
+                for pair in pairs
+                    do (pair) ->
+                        publicMethods.remove pair.key
+
+                return pairs.length
+
+
+        publicMethods = 
 
             isSupported: -> supported
 
@@ -68,35 +102,28 @@ angular.module('angularLocalStorage', [])
                 return privateMethods.parseValue(saver)
 
             #
-            # Get - Returns the value of any key-value pair in localStorage
+            # Get - Returns the value of any key-value pair in localStorage, or if passed a function, 
+            # an array containing all key/value pairs for which the predicate function returns true.
             #
-            # @param key - the string that you set as accessor for the pair
+            # If using a predicate and defaultValue, the defaultValue will be returned if the predicate 
+            # returns false for all keys/value pairs in localStorage.  In other words, if defaultValue is set,
+            # it will be returned instead of an empty array.
+            #
+            # @param keyOrFunction - the accessor value OR a predicate function
             # @param defaultValue - optionally returned if the key does not exist or its value is null
             # @returns {*} - Object,String,Float,Boolean depending on what you stored
             #
-            get: (key, defaultValue = null) ->
-                item = storage.getItem(key)
+            get: (keyOrFunction, defaultValue = null) ->
+                if typeof keyOrFunction == 'function'
+                    pairs = privateMethods.getPairs(keyOrFunction)
+                    if pairs.length == 0 && defaultValue? 
+                        return defaultValue
+
+                    return pairs
+                    
+                item = storage.getItem(keyOrFunction)
 
                 return privateMethods.parseValue(item) ? defaultValue
-
-            #
-            # GetPairs - Returns an array of all key/value pairs for which the predicate function
-            # returns true.  Each pair will be represented as {"key": key, "value": value}
-            #
-            # @param predicate - a function that accepts a key/value pair and returns true or false
-            # @returns {array} - will return an array of values that passed the predicate test
-            #
-            getPairs: (predicate) ->
-                result = []
-
-                for i in [0..storage.length-1]
-                    do (i) ->
-                        key = storage.key(i)
-                        pair = { key: key, value: publicMethods.get(key)}
-                        if predicate(pair) then result.push pair
-
-                return result
-
 
             # Initialize - Stores a key-value pair unless the key is already in use
             #
@@ -159,26 +186,10 @@ angular.module('angularLocalStorage', [])
             #
             remove: (keyOrFunction) ->
                 if typeof keyOrFunction == 'function'
-                    return publicMethods.removePairs keyOrFunction
+                    return privateMethods.removePairs keyOrFunction
 
                 storage.removeItem(keyOrFunction)
                 return true
-
-            #
-            # RemovePairs - Removes all key/value pairs for which the predicate function
-            # returns true.  Each pair will be represented as {"key": key, "value": value}
-            #
-            # @param predicate - a function that accepts a key/value pair and returns true or false
-            # @returns {integer} - the number of pairs which were removed
-            #
-            removePairs: (predicate) ->
-                pairs = publicMethods.getPairs(predicate)
-
-                for pair in pairs
-                    do (pair) ->
-                        publicMethods.remove pair.key
-
-                return pairs.length
 
             #
             # Bind - let's you directly bind a localStorage value to a $scope variable
@@ -239,7 +250,7 @@ angular.module('angularLocalStorage', [])
             #
             clearAll: ->
                 storage.clear()
-        }
+        
 
         return publicMethods
     ]

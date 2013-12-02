@@ -5,6 +5,25 @@
       storage = $window.localStorage != null ? $window.localStorage : null;
       supported = storage != null;
       privateMethods = {
+        getPairs: function(predicate) {
+          var i, result, _fn, _i, _ref;
+          result = [];
+          _fn = function(i) {
+            var key, pair;
+            key = storage.key(i);
+            pair = {
+              key: key,
+              value: publicMethods.get(key)
+            };
+            if (predicate(pair)) {
+              return result.push(pair);
+            }
+          };
+          for (i = _i = 0, _ref = storage.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+            _fn(i);
+          }
+          return result;
+        },
         parseValue: function(res) {
           var error, val;
           try {
@@ -29,6 +48,18 @@
             val = res;
           }
           return val;
+        },
+        removePairs: function(predicate) {
+          var pair, pairs, _fn, _i, _len;
+          pairs = privateMethods.getPairs(predicate);
+          _fn = function(pair) {
+            return publicMethods.remove(pair.key);
+          };
+          for (_i = 0, _len = pairs.length; _i < _len; _i++) {
+            pair = pairs[_i];
+            _fn(pair);
+          }
+          return pairs.length;
         }
       };
       publicMethods = {
@@ -47,32 +78,20 @@
           storage.setItem(key, saver);
           return privateMethods.parseValue(saver);
         },
-        get: function(key, defaultValue) {
-          var item, _ref;
+        get: function(keyOrFunction, defaultValue) {
+          var item, pairs, _ref;
           if (defaultValue == null) {
             defaultValue = null;
           }
-          item = storage.getItem(key);
-          return (_ref = privateMethods.parseValue(item)) != null ? _ref : defaultValue;
-        },
-        getPairs: function(predicate) {
-          var i, result, _fn, _i, _ref;
-          result = [];
-          _fn = function(i) {
-            var key, pair;
-            key = storage.key(i);
-            pair = {
-              key: key,
-              value: publicMethods.get(key)
-            };
-            if (predicate(pair)) {
-              return result.push(pair);
+          if (typeof keyOrFunction === 'function') {
+            pairs = privateMethods.getPairs(keyOrFunction);
+            if (pairs.length === 0 && (defaultValue != null)) {
+              return defaultValue;
             }
-          };
-          for (i = _i = 0, _ref = storage.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-            _fn(i);
+            return pairs;
           }
-          return result;
+          item = storage.getItem(keyOrFunction);
+          return (_ref = privateMethods.parseValue(item)) != null ? _ref : defaultValue;
         },
         initialize: function(key, value) {
           var currentValue;
@@ -111,22 +130,10 @@
         },
         remove: function(keyOrFunction) {
           if (typeof keyOrFunction === 'function') {
-            return publicMethods.removePairs(keyOrFunction);
+            return privateMethods.removePairs(keyOrFunction);
           }
           storage.removeItem(keyOrFunction);
           return true;
-        },
-        removePairs: function(predicate) {
-          var pair, pairs, _fn, _i, _len;
-          pairs = publicMethods.getPairs(predicate);
-          _fn = function(pair) {
-            return publicMethods.remove(pair.key);
-          };
-          for (_i = 0, _len = pairs.length; _i < _len; _i++) {
-            pair = pairs[_i];
-            _fn(pair);
-          }
-          return pairs.length;
         },
         bind: function($scope, key, opts) {
           var defaultOpts, storeName;

@@ -83,4 +83,26 @@ describe 'angularLocalStorage module', ->
             defaultValue = { string: 'A String' }
             expect(storage.get('unknown Key', defaultValue)).toEqual defaultValue
         
-    
+    describe 'when using get() with a predicate', ->
+
+        beforeEach ->
+            storage.set('alpha-1', 'some test string')
+            storage.set('alpha-2', 'another string')
+            storage.set('beta-1', 'test string')
+            storage.set('alpha-3', 'string value')
+        
+        it 'should return pairs that match the key predicate', ->
+            pairs = storage.get (pair) -> pair.key.indexOf('alpha') == 0
+            expect(pairs.length).toEqual 3
+        
+        it 'should return pairs that match the value predicate', ->
+            pairs = storage.get (pair) -> pair.value.indexOf('value') > 0
+            expect(pairs.length).toEqual 1
+        
+        it 'should return an empty array if nothing matches', ->
+            pairs = storage.get (pair) -> false
+            expect(pairs.length).toEqual 0
+
+        it 'should return the default value if nothing matches and the defaultValue parameter is set', ->
+            pairs = storage.get ((pair) -> false), 99
+            expect(pairs).toEqual 99
