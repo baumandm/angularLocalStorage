@@ -13,6 +13,7 @@ module.exports = function(config) {
             'test/lib/angular/angular-mocks.js',
             'test/lib/angular/angular-cookies.js',
             'src/*.js',
+            'test/angularLocalStorage.spec.js',
             'test/unit/*.js'
         ],
 
