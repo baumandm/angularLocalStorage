@@ -1,5 +1,6 @@
 describe 'angularLocalStorage module', ->
     storage = null
+    localStorage = null
     
     beforeEach ->
         module 'angularLocalStorage'
@@ -7,6 +8,8 @@ describe 'angularLocalStorage module', ->
         inject ($injector) ->
             storage = $injector.get 'storage'
             storage.clearAll()
+
+            localStorage = ($injector.get '$window').localStorage
 
     describe 'when use set() && get() methods', ->
 
@@ -60,6 +63,13 @@ describe 'angularLocalStorage module', ->
             storage.set('spec', value)
             testValue = storage.get('spec')
             expect(testValue).toEqual value 
+
+        it 'should handle bad JSON parsing', ->
+            value = '{ "key": true'
+            localStorage.setItem('spec', value)
+
+            actual = storage.get('spec')
+            expect(actual).toEqual value
         
     describe 'when using get() with a default value', ->
         beforeEach ->

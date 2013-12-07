@@ -41,16 +41,17 @@ angular.module('angularLocalStorage', [])
             #
             parseValue: (res) ->
                 try
-                    val = angular.fromJson(res)
-
-                    if not val? then val = res
+                    val = angular.fromJson(res) ? res
+                
+                    val = switch val
+                        when 'true' then true
+                        when 'false' then false
+                        when 'null' then null
+                        else val
                     
-                    if val == 'true' then val = true
-                    if val == 'false' then val = false
-                    if val == 'null' then val = null
-                    
-                    if $window.parseFloat(val) == val and not angular.isObject(val)
-                        val = $window.parseFloat(val)
+                    float = $window.parseFloat val
+                    if float == val and not angular.isObject(val)
+                        val = float
 
                 catch error
                     val = res
@@ -204,18 +205,17 @@ angular.module('angularLocalStorage', [])
             bind: ($scope, key, opts) ->
                 defaultOpts =
                     defaultValue: ''
-                    storeName: ''
+                    storeName: null
 
                 # Backwards compatibility with old defaultValue string
-                if angular.isString(opts) 
-                    opts = angular.extend({}, defaultOpts, { defaultValue: opts })
-                else
-                    # If no defined options we use defaults, otherwise extend defaults
-                    opts = if angular.isUndefined(opts) then defaultOpts else angular.extend(defaultOpts, opts)
+                opts = switch
+                    when angular.isString(opts) then angular.extend({}, defaultOpts, { defaultValue: opts })
+                    when angular.isUndefined(opts) then defaultOpts
+                    else angular.extend(defaultOpts, opts)
 
                 # Set the storeName key for the localStorage entry
                 # use user defined in specified
-                storeName = opts.storeName || key
+                storeName = opts.storeName ? key
 
                 # If a value doesn't already exist store it as is
                 publicMethods.initialize(storeName, opts.defaultValue)
@@ -235,22 +235,23 @@ angular.module('angularLocalStorage', [])
             #
             # Unbind - let's you unbind a variable from localStorage while removing the value from both
             # the localStorage and the local variable and sets it to null
+            #
             # @param $scope - the scope the variable was initially set in
             # @param key - the name of the variable you are unbinding
             # @param storeName - (optional) if you used a custom storeName you will have to specify it here as well
             #
             unbind: ($scope, key, storeName) ->
-                storeName = storeName || key
+                storeName = storeName ? key
                 $parse(key).assign($scope, null)
                 $scope.$watch(key, -> )
                 publicMethods.remove(storeName)
 
             #
-            # Clear All - let's you clear out ALL localStorage variables, use this carefully!
+            # Clear All - Removes all key/value pairs from local storage
             #
             clearAll: ->
                 storage.clear()
         
 
         return publicMethods
-    ]
+]

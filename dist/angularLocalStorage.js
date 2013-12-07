@@ -1,6 +1,6 @@
 /**
  * AngularJS service providing HTML5 local storage support
- * @version v0.1.0 - 2013-12-01
+ * @version v0.1.0 - 2013-12-07
  * @link https://github.com/baumandm/angularLocalStorage
  * @author Dave Bauman <baumandm@gmail.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -32,23 +32,24 @@
           return result;
         },
         parseValue: function(res) {
-          var error, val;
+          var error, float, val, _ref;
           try {
-            val = angular.fromJson(res);
-            if (val == null) {
-              val = res;
-            }
-            if (val === 'true') {
-              val = true;
-            }
-            if (val === 'false') {
-              val = false;
-            }
-            if (val === 'null') {
-              val = null;
-            }
-            if ($window.parseFloat(val) === val && !angular.isObject(val)) {
-              val = $window.parseFloat(val);
+            val = (_ref = angular.fromJson(res)) != null ? _ref : res;
+            val = (function() {
+              switch (val) {
+                case 'true':
+                  return true;
+                case 'false':
+                  return false;
+                case 'null':
+                  return null;
+                default:
+                  return val;
+              }
+            })();
+            float = $window.parseFloat(val);
+            if (float === val && !angular.isObject(val)) {
+              val = float;
             }
           } catch (_error) {
             error = _error;
@@ -143,19 +144,24 @@
           return true;
         },
         bind: function($scope, key, opts) {
-          var defaultOpts, storeName;
+          var defaultOpts, storeName, _ref;
           defaultOpts = {
             defaultValue: '',
-            storeName: ''
+            storeName: null
           };
-          if (angular.isString(opts)) {
-            opts = angular.extend({}, defaultOpts, {
-              defaultValue: opts
-            });
-          } else {
-            opts = angular.isUndefined(opts) ? defaultOpts : angular.extend(defaultOpts, opts);
-          }
-          storeName = opts.storeName || key;
+          opts = (function() {
+            switch (false) {
+              case !angular.isString(opts):
+                return angular.extend({}, defaultOpts, {
+                  defaultValue: opts
+                });
+              case !angular.isUndefined(opts):
+                return defaultOpts;
+              default:
+                return angular.extend(defaultOpts, opts);
+            }
+          })();
+          storeName = (_ref = opts.storeName) != null ? _ref : key;
           publicMethods.initialize(storeName, opts.defaultValue);
           $parse(key).assign($scope, publicMethods.get(storeName));
           $scope.$watch(key, function(val) {
@@ -166,7 +172,7 @@
           return publicMethods.get(storeName);
         },
         unbind: function($scope, key, storeName) {
-          storeName = storeName || key;
+          storeName = storeName != null ? storeName : key;
           $parse(key).assign($scope, null);
           $scope.$watch(key, function() {});
           return publicMethods.remove(storeName);
